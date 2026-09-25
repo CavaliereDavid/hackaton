@@ -1,15 +1,13 @@
 <!--
 Sync Impact Report
-- Version change: (template placeholders) → 1.0.0
-- Modified principles:
-  - [PRINCIPLE_1_NAME] → I. Spec-Kit First
-  - [PRINCIPLE_2_NAME] → II. One Feature, One Worktree
-  - [PRINCIPLE_3_NAME] → III. Spec Before Code
-  - [PRINCIPLE_4_NAME] → IV. Worktree Isolation
-  - [PRINCIPLE_5_NAME] → V. Keep It Shipable
-- Added sections: Feature Delivery Rules, Development Workflow
-- Removed sections: none (scaffold placeholders replaced)
+- Version change: 1.0.0 → 1.0.1
+- Modified principles: none (content reaffirmed)
+- Added sections: none
+- Removed sections: none
 - Follow-up TODOs: none
+- Notes: Re-ran `/speckit-constitution` with empty input; resolved
+  constitution-template scaffold; preserved existing project principles and
+  sections. PATCH: pnpm worktrees URL locale (`/it/` → canonical).
 -->
 
 # Hackaton Constitution
@@ -29,7 +27,7 @@ prevent silent scope drift across worktrees.
 
 ### II. One Feature, One Worktree
 Each feature MUST be developed in its own pnpm git worktree
-(https://pnpm.io/it/git-worktrees). Do not implement multiple unrelated
+(https://pnpm.io/git-worktrees). Do not implement multiple unrelated
 features in the same worktree. Create the worktree when the feature branch is
 created; remove or archive it when the feature is merged or abandoned.
 
@@ -109,4 +107,4 @@ Amendments:
 Compliance review: before marking a feature complete, confirm the spec,
 plan/tasks, and worktree/branch mapping still match what was shipped.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-09-25
+**Version**: 1.0.1 | **Ratified**: 2026-09-25 | **Last Amended**: 2026-09-25

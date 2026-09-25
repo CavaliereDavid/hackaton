@@ -14,26 +14,42 @@ export function TalkPanel({ personName, messages, onSend, onClose, onMeet }: Pro
   return (
     <div className="stack">
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <h3 style={{ margin: 0 }}>Talk with {personName}</h3>
+        <div>
+          <p className="sanctuary__eyebrow" style={{ margin: 0 }}>
+            Tempo morto
+          </p>
+          <h3
+            style={{
+              margin: "0.2rem 0 0",
+              fontFamily: "var(--font-serif)",
+              fontStyle: "italic",
+              fontWeight: 400,
+            }}
+          >
+            Con {personName}
+          </h3>
+        </div>
         <div className="row">
           {onMeet ? (
             <button type="button" className="btn secondary" onClick={onMeet}>
-              Start meet
+              Avvia meet
             </button>
           ) : null}
           <button type="button" className="btn secondary" onClick={onClose}>
-            Close talk
+            Chiudi
           </button>
         </div>
       </div>
-      <div
-        className="panel"
-        style={{ maxHeight: 220, overflow: "auto", background: "rgba(255,255,255,0.7)" }}
-      >
-        {messages.length === 0 ? <p className="muted">Say hi while the agent thinks…</p> : null}
+      <div className="panel" style={{ maxHeight: 240, overflow: "auto" }}>
+        {messages.length === 0 ? (
+          <p className="muted">Di&apos; qualcosa mentre l&apos;agente pensa…</p>
+        ) : null}
         {messages.map((m) => (
-          <p key={m.id} style={{ margin: "0.35rem 0" }}>
-            <strong>{m.sender}:</strong> {m.body}
+          <p key={m.id} style={{ margin: "0.4rem 0", fontSize: "0.9rem" }}>
+            <strong style={{ color: m.sender === "user" ? "var(--candle-soft)" : "#e7e5e4" }}>
+              {m.sender === "user" ? "Tu" : m.sender === "system" ? "Sistema" : personName}:
+            </strong>{" "}
+            {m.body}
           </p>
         ))}
       </div>
@@ -50,11 +66,12 @@ export function TalkPanel({ personName, messages, onSend, onClose, onMeet }: Pro
           className="field"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Message…"
-          aria-label="Message"
+          placeholder="Un pensiero veloce…"
+          aria-label="Messaggio"
+          autoFocus
         />
         <button type="submit" className="btn">
-          Send
+          Invia
         </button>
       </form>
     </div>

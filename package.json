@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm run --parallel /^dev:/",
+    "dev": "pnpm --filter @hackaton/api --filter @hackaton/web --parallel run dev",
     "dev:api": "pnpm --filter @hackaton/api dev",
     "dev:web": "pnpm --filter @hackaton/web dev",
     "build": "pnpm -r run build",
@@ -14,7 +14,7 @@
     "packageManager": {
       "name": "pnpm",
       "version": "^12.6.0",
-      "onFail": "download"
+      "onFail": "ignore"
     }
   }
 }

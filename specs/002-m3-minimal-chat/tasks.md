@@ -4,7 +4,7 @@
 
 **Prerequisites**: plan.md (required), spec.md (required), research.md, contracts/openapi.yaml
 
-**Tests**: Not requested in the feature specification — no TDD/contract-test task phase included. Validation via quickstart scenarios after Polish.
+**Tests**: Not requested in the feature specification — no TDD/contract-test task phase. Validation via quickstart scenarios in Polish.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -30,7 +30,7 @@
 - [ ] T001 Sync as-built monorepo layout from `/home/david/grok/001-dead-time-circle` into this worktree: copy/update `apps/web/`, `apps/api/`, `packages/shared/`, root `package.json` scripts (`dev:web`, `dev:api`), and `pnpm-workspace.yaml` so the 002 tree matches plan structure
 - [ ] T002 Add Material Design 3 dependencies to `apps/web/package.json`: `@material/web` and any required peer helpers; run `pnpm install` in `/home/david/grok/002-m3-minimal-chat`
 - [ ] T003 [P] Create M3 theme scaffolding files `apps/web/src/theme/m3-tokens.css` and `apps/web/src/theme/material-web.ts` (token CSS variables + Material Web component imports registration)
-- [ ] T004 [P] Complete missing design docs for implementers: write `specs/002-m3-minimal-chat/data-model.md` (reuse 001 entities + Chat Turn / Instagram surface projections), `specs/002-m3-minimal-chat/contracts/events.md` (SSE wait + optimistic open notes), `specs/002-m3-minimal-chat/contracts/ui.md` (minimal chat + Instagram surface UI contract), and `specs/002-m3-minimal-chat/quickstart.md` (Enter→open scenarios)
+- [ ] T004 [P] Complete missing design docs for implementers: write `specs/002-m3-minimal-chat/data-model.md` (reuse 001 entities + Chat Turn / Instagram surface projections), `specs/002-m3-minimal-chat/contracts/events.md` (SSE wait + optimistic open notes), `specs/002-m3-minimal-chat/contracts/ui.md` (minimal chat + Instagram surface UI contract), and `specs/002-m3-minimal-chat/quickstart.md` (Enter→open scenarios A–C)
 - [ ] T005 [P] Verify/update `.gitignore` in worktree root for Node/Vite/SQLite patterns (`node_modules/`, `dist/`, `*.log`, `.env*`, `apps/api/data/*.sqlite*`, `.DS_Store`)
 
 ---
@@ -62,9 +62,10 @@
 - [ ] T011 [P] [US1] Create `apps/web/src/components/ChatTranscript.tsx` rendering user/assistant turns (Chat Turn: role + body) with M3 typography/color roles
 - [ ] T012 [P] [US1] Create `apps/web/src/components/PromptComposer.tsx` using Material Web text field + send icon button; Enter submits, Shift+Enter inserts newline; empty submit disabled/no-op
 - [ ] T013 [US1] Create `apps/web/src/pages/ChatPage.tsx` composing transcript + composer only (replace prior Agent page as primary route `/` in `apps/web/src/App.tsx`)
-- [ ] T014 [US1] Wire `usePromptSubmit` + `useAgentWait` into `ChatPage.tsx`: on submit append user turn, start wait, show thinking indicator in transcript; on `result_ready` append assistant turn from `resultText`
-- [ ] T015 [US1] Strip non-essential chat chrome from default UI in `apps/web/src/App.tsx` and `ChatPage.tsx` (no model picker, attachments, history sidebar, plugins, voice, regenerate); move any demo stop/debug behind `?demo=1` or a discrete overflow only
-- [ ] T016 [US1] Ensure ≤3 primary interactive chat controls in default path (composer field, send/Enter, optional single dismiss/return) per SC-005 in `ChatPage.tsx`
+- [ ] T014 [US1] Wire `usePromptSubmit` + `useAgentWait` into `apps/web/src/pages/ChatPage.tsx`: on submit append user turn, start wait, show thinking indicator in transcript; on `result_ready` append assistant turn from `resultText`
+- [ ] T015 [US1] Strip non-essential chat chrome from default UI in `apps/web/src/App.tsx` and `apps/web/src/pages/ChatPage.tsx` (no model picker, attachments, history sidebar, plugins, voice, regenerate); move any demo stop/debug behind `?demo=1` or a discrete overflow only
+- [ ] T016 [US1] Ensure ≤3 primary interactive chat controls in default path (composer field, send/Enter, optional single dismiss/return) per SC-005 in `apps/web/src/pages/ChatPage.tsx`
+- [ ] T017 [US1] In `apps/web/src/hooks/usePromptSubmit.ts` and `apps/web/src/pages/ChatPage.tsx`, while `waitStatus` is active: ignore non-empty submit (no second concurrent session per FR-012); disable send or equivalent no-op with wait status still visible; after wait ends, normal submit resumes (FR-004)
 
 **Checkpoint**: US1 independently demoable — minimal M3 chat works without Instagram surface
 
@@ -78,12 +79,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T017 [P] [US2] Create `apps/web/src/components/StoriesStrip.tsx` (horizontal avatar-forward Instagram-like highlights from inner-circle people)
-- [ ] T018 [P] [US2] Create `apps/web/src/components/PersonCard.tsx` and `apps/web/src/components/InnerCircleFeed.tsx` (feed/profile-style cards; not a plain text list as primary affordance)
-- [ ] T019 [US2] Create `apps/web/src/components/InstagramInnerCircleSurface.tsx` composing StoriesStrip + InnerCircleFeed + wait-status chip/banner + empty state (FR-005, FR-006, FR-009)
-- [ ] T020 [US2] On successful non-empty prompt submit in `ChatPage.tsx` / `usePromptSubmit.ts`, optimistically set `innerCircleOpen=true` immediately (do not wait for SSE); reconcile with `thinking_started` / snapshot from `useAgentWait.ts`
-- [ ] T021 [US2] Keep agent-wait status visible while Instagram surface is open (status chip in `InstagramInnerCircleSurface.tsx`); support soft-dismiss without clearing agent result; empty prompt MUST NOT open surface
-- [ ] T022 [US2] Create minimal manage page `apps/web/src/pages/InnerCircleManagePage.tsx` (add/remove ≤10 people) linked from empty state / subtle nav — must not add chat chrome to `ChatPage.tsx` (FR-010)
+- [ ] T018 [P] [US2] Create `apps/web/src/components/StoriesStrip.tsx` (horizontal avatar-forward Instagram-like highlights from inner-circle people)
+- [ ] T019 [P] [US2] Create `apps/web/src/components/PersonCard.tsx` and `apps/web/src/components/InnerCircleFeed.tsx` (feed/profile-style cards; not a plain text list as primary affordance)
+- [ ] T020 [US2] Create `apps/web/src/components/InstagramInnerCircleSurface.tsx` composing StoriesStrip + InnerCircleFeed + wait-status chip/banner + empty state (FR-005, FR-006, FR-009)
+- [ ] T021 [US2] On successful non-empty prompt submit in `apps/web/src/pages/ChatPage.tsx` / `apps/web/src/hooks/usePromptSubmit.ts`, optimistically set `innerCircleOpen=true` immediately (do not wait for SSE); reconcile with `thinking_started` / snapshot from `apps/web/src/hooks/useAgentWait.ts`
+- [ ] T022 [US2] Keep agent-wait status visible while Instagram surface is open (status chip in `apps/web/src/components/InstagramInnerCircleSurface.tsx`); support soft-dismiss without clearing agent result; empty prompt MUST NOT open surface
+- [ ] T023 [US2] Create minimal manage page `apps/web/src/pages/InnerCircleManagePage.tsx` (add/remove ≤10 people, `displayName` minLength 1 maxLength 80 per OpenAPI) linked from empty state / subtle nav — must not add chat chrome to `ChatPage.tsx` (FR-010)
 
 **Checkpoint**: US1 + US2 — prompt auto-opens Instagram-like surface during wait
 
@@ -97,10 +98,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T023 [P] [US3] Create `apps/web/src/components/TalkSheet.tsx` with message list + composer only (reuse `apps/web/src/hooks/useTalk.ts` / talk WS)
-- [ ] T024 [US3] Wire person select from `PersonCard.tsx` / `StoriesStrip.tsx` to open `TalkSheet.tsx` during open Instagram surface; closing talk returns to surface while wait active
-- [ ] T025 [US3] On agent `result_ready` / completion while talk is open: show completion signal and append/show assistant turn in `ChatTranscript.tsx` without discarding `resultText` (FR-008, SC-004)
-- [ ] T026 [US3] Keep meet as stub only if already present from 001 sync (`apps/web/src/components/MeetStubButton.tsx`); do not expand WebRTC for this feature
+- [ ] T024 [P] [US3] Create `apps/web/src/components/TalkSheet.tsx` with message list + composer only (reuse `apps/web/src/hooks/useTalk.ts` / talk WS)
+- [ ] T025 [US3] Wire person select from `apps/web/src/components/PersonCard.tsx` / `apps/web/src/components/StoriesStrip.tsx` to open `TalkSheet.tsx` during open Instagram surface; closing talk returns to surface while wait active
+- [ ] T026 [US3] On agent `result_ready` / completion while talk is open: show completion signal and append/show assistant turn in `apps/web/src/components/ChatTranscript.tsx` without discarding `resultText` (FR-008, SC-004)
+- [ ] T027 [US3] Keep meet as stub only if already present from 001 sync (`apps/web/src/components/MeetStubButton.tsx`); do not expand WebRTC for this feature
 
 **Checkpoint**: All three stories independently functional on the happy path
 
@@ -110,10 +111,12 @@
 
 **Purpose**: Demo reliability, docs, and chrome checklist
 
-- [ ] T027 [P] Seed demo inner-circle people (with `avatarUrl` or generated initials) in `apps/api/src/db/seed.ts` so Instagram UI is demoable cold-start
-- [ ] T028 [P] Hide remaining demo/debug controls from default chrome; document `?demo=1` (if used) in `specs/002-m3-minimal-chat/quickstart.md` and root `README.md`
-- [ ] T029 Run quickstart scenarios A–C in `specs/002-m3-minimal-chat/quickstart.md` (empty prompt no-op; Enter opens ≤1s; talk + result preserved); fix gaps
-- [ ] T030 Visual pass: M3 color roles/type/shape on chat + Instagram surfaces per https://m3.material.io/; confirm SC-003 checklist items (Claude/GPT-like, Instagram-like, minimal chrome)
+- [ ] T028 [P] Seed demo inner-circle people (with `avatarUrl` or generated initials) in `apps/api/src/db/seed.ts` so Instagram UI is demoable cold-start
+- [ ] T029 [P] Hide remaining demo/debug controls from default chrome; document `?demo=1` (if used) in `specs/002-m3-minimal-chat/quickstart.md` and root `README.md`
+- [ ] T030 Handle early `result_ready` during Instagram open animation in `apps/web/src/components/InstagramInnerCircleSurface.tsx` and `apps/web/src/state/deadTimeStore.ts` so the assistant result is never dropped (FR-008)
+- [ ] T031 Surface wait/talk reconnect or non-fatal error state from existing SSE/WS helpers in `apps/web/src/hooks/useAgentWait.ts` / `apps/web/src/hooks/useTalk.ts`; document in `specs/002-m3-minimal-chat/quickstart.md`
+- [ ] T032 Run quickstart scenarios A–C in `specs/002-m3-minimal-chat/quickstart.md` (empty prompt no-op; Enter opens ≤1s; talk + result preserved; second prompt during wait is no-op); fix gaps
+- [ ] T033 Visual pass: M3 color roles/type/shape on chat + Instagram surfaces per https://m3.material.io/; confirm SC-003 checklist items (Claude/GPT-like, Instagram-like, minimal chrome)
 
 ---
 
@@ -124,7 +127,7 @@
 - **Setup (Phase 1)**: No dependencies — start immediately (T001 blocks most later work)
 - **Foundational (Phase 2)**: Depends on Setup — **BLOCKS** all user stories
 - **US1 (Phase 3)**: Depends on Foundational — MVP
-- **US2 (Phase 4)**: Depends on Foundational; integrates with US1 submit path (T014/T020) but Instagram components can be built in parallel once foundation exists
+- **US2 (Phase 4)**: Depends on Foundational; integrates with US1 submit path (T014/T021) but Instagram components can be built in parallel once foundation exists
 - **US3 (Phase 5)**: Depends on US2 surface being openable; talk sheet can be built [P] then wired
 - **Polish (Phase 6)**: After desired stories complete
 
@@ -134,13 +137,33 @@
 - **User Story 2 (P1)**: After Phase 2 — needs US1 submit wiring for auto-open; StoriesStrip/PersonCard [P] before surface compose
 - **User Story 3 (P2)**: Needs US2 surface; TalkSheet [P] then wire select + completion
 
+### Within Each User Story
+
+- Components marked [P] before compose/wire tasks
+- Submit/wait wiring before auto-open behavior
+- Story complete before moving to next priority when staffing is sequential
+
 ### Parallel Opportunities
 
 - T003, T004, T005 after T001/T002
 - T011 || T012 within US1
-- T017 || T018 within US2
-- T023 parallelizable early in US3 while surface polish continues
-- T027 || T028 in Polish
+- T018 || T019 within US2
+- T024 parallelizable early in US3 while surface polish continues
+- T028 || T029 in Polish
+
+---
+
+## Parallel Example: User Story 1
+
+```bash
+# Launch US1 components in parallel:
+Task: "Create apps/web/src/components/ChatTranscript.tsx"
+Task: "Create apps/web/src/components/PromptComposer.tsx"
+# Then sequential:
+Task: "Compose ChatPage.tsx and route in App.tsx"
+Task: "Wire usePromptSubmit + useAgentWait"
+Task: "Strip chrome + FR-012 submit gating"
+```
 
 ---
 
@@ -153,18 +176,6 @@ Task: "Create apps/web/src/components/PersonCard.tsx and InnerCircleFeed.tsx"
 # Then sequential:
 Task: "Compose InstagramInnerCircleSurface.tsx"
 Task: "Optimistic open on prompt submit in ChatPage / usePromptSubmit"
-```
-
----
-
-## Parallel Example: User Story 1
-
-```bash
-Task: "Create apps/web/src/components/ChatTranscript.tsx"
-Task: "Create apps/web/src/components/PromptComposer.tsx"
-# Then:
-Task: "Compose ChatPage.tsx and route in App.tsx"
-Task: "Wire usePromptSubmit + useAgentWait"
 ```
 
 ---
@@ -200,3 +211,23 @@ Task: "Wire usePromptSubmit + useAgentWait"
 - Do not implement inside `/home/david/grok/001-dead-time-circle` — constitution One Feature, One Worktree
 - Prefer reusing 001 API/hooks over rewriting backend
 - Meet stays stub; no real LLM/Instagram API
+- Missing `data-model.md` / `events.md` / `ui.md` / `quickstart.md` are created in T004 before UI polish relies on them
+
+---
+
+## Phase 7: Convergence
+
+- [ ] T034 CRITICAL Continue all remaining 002 product implementation only in worktree `/home/david/grok/002-m3-minimal-chat` on branch `002-m3-minimal-chat` (do not ship this feature from the `main` worktree) per FR-011 / Constitution II (contradicts)
+- [ ] T035 CRITICAL Route `/` to `ChatPage` in `apps/web/src/App.tsx` and remove `AgentPage` + `MeetPanel` from the default demo path so the first screen is the M3 Claude/GPT-like shell per FR-002 / FR-003 / US1/AC1 (contradicts)
+- [ ] T036 CRITICAL Extend `apps/web/src/state/deadTimeStore.ts` with `innerCircleOpen`, `waitStatus` / `WaitStatus`, and `openInnerCircleOptimistic`, and align `useAgentWait.ts` / `ChatPage.tsx` / `InstagramInnerCircleSurface.tsx` / `usePromptSubmit.ts` so optimistic auto-open compiles and works per T009 / FR-004 / US2/AC1 (partial)
+- [ ] T037 CRITICAL Import `apps/web/src/theme/m3-tokens.css` and `apps/web/src/theme/material-web.ts` from `apps/web/src/main.tsx`, and add M3 chat + Instagram surface styles (e.g. `.chat-page`, `.ig-surface`, `.prompt-composer`) in `apps/web/src/styles/global.css` per FR-001 / T006 / T030 (missing)
+- [ ] T038 Complete missing design docs `specs/002-m3-minimal-chat/data-model.md`, `contracts/events.md`, `contracts/ui.md`, and `quickstart.md` per T004 (missing)
+- [ ] T039 Seed demo inner-circle people (with `avatarUrl` or initials-ready names) in `apps/api/src/db/seed.ts` so cold-start Instagram UI is demoable per T027 / FR-005 / SC-002 (missing)
+- [ ] T040 Enforce FR-012 in `apps/web/src/hooks/usePromptSubmit.ts` (and ChatPage composer): ignore non-empty submit while wait is active; resume normal submit after wait ends (partial)
+- [ ] T041 Wire `InnerCircleManagePage` as the `/inner-circle` manage route in `apps/web/src/App.tsx` (retire default use of legacy `InnerCirclePage` for curation) per T022 / FR-010 (partial)
+- [ ] T042 Keep meet stub-only on the default path (`MeetStubButton` / `?demo=1` only); do not expose `MeetPanel` WebRTC in the shipped chat shell per T026 / FR-003 (contradicts)
+- [ ] T043 Surface non-fatal SSE/WS reconnect or error affordances from `useAgentWait.ts` / `useTalk.ts` and document in `quickstart.md` per T033 / edge case (missing)
+- [ ] T044 Handle early `result_ready` during Instagram open animation without dropping the assistant transcript turn per T032 / FR-008 / SC-004 (missing)
+- [ ] T045 Hide remaining demo/debug controls behind `?demo=1` and document that flag in `specs/002-m3-minimal-chat/quickstart.md` and root `README.md` per T028 (partial)
+- [ ] T046 Switch `PromptComposer.tsx` to Material Web outlined text field (+ send control) per T012 (partial)
+- [ ] T047 Review legacy `AgentPage.tsx` / `TalkPanel.tsx` / `DeadTimeTransition.tsx` / sanctuary chrome: justify retention or remove from default ship path per FR-002 / FR-003 (unrequested)

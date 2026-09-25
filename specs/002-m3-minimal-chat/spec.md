@@ -56,20 +56,20 @@ From the open Instagram-like inner circle, the user can open a minimal text talk
 
 1. **Given** dead-time/inner-circle is open from a prompt, **When** the user selects a person, **Then** a minimal talk thread opens (message list + composer only).
 2. **Given** the user is in talk, **When** the agent finishes, **Then** completion is signaled and the assistant result remains available in the chat canvas.
-3. **Given** the user closes talk, **When** wait is still active, **Then** they remain on the Instagram-like inner circle until wait ends or they dismiss it if soft-dismiss is allowed.
+3. **Given** the user closes talk, **When** wait is still active, **Then** they remain on the Instagram-like inner circle until wait ends, unless they soft-dismiss the surface (allowed); if soft-dismissed, completion MUST still notify and the assistant result MUST remain available in the chat canvas.
 
 ---
 
 ### Edge Cases
 
 - User presses Enter on an empty prompt (MUST NOT open inner circle or start thinking).
-- User submits a second prompt while a wait is already active.
+- User submits a second prompt while a wait is already active → **no-op** (FR-012); wait and open surface unchanged.
 - Inner circle opens before SSE connects (optimistic open on successful submit MUST be allowed; reconnect must reconcile).
-- Agent wait ends very quickly (under ~2s) while the Instagram surface is animating open.
+- Agent wait ends very quickly (under ~2s) while the Instagram surface is animating open → surface MAY finish open then immediately show completion / allow return to chat; MUST NOT drop the assistant result (FR-008).
 - Soft-dismiss of inner circle while thinking continues; completion MUST still notify.
 - Talk still open when assistant result arrives.
-- Network interruption during wait or talk.
-- Rapid consecutive prompts after prior wait closed.
+- Network interruption during wait or talk → show a non-fatal error/reconnect affordance; on restore, reconcile wait snapshot (open/close + status) and talk history; do not invent a second wait.
+- Rapid consecutive prompts after prior wait closed → each non-empty submit starts a new wait + auto-open (FR-004).
 
 ## Requirements *(mandatory)*
 
@@ -86,11 +86,12 @@ From the open Instagram-like inner circle, the user can open a minimal text talk
 - **FR-009**: System MUST handle empty inner circle with a non-broken empty state when the surface auto-opens.
 - **FR-010**: Users MUST still be able to curate who is in the inner circle (small set) without expanding the chat shell’s feature set.
 - **FR-011**: This feature MUST be developed in its own pnpm git worktree on branch `002-m3-minimal-chat`, separate from `001-dead-time-circle`.
+- **FR-012**: While an agent wait is active, submitting another non-empty prompt MUST NOT start a second concurrent wait. For the demo default, the system MUST ignore/no-op that submit (composer non-submitting or equivalent) while wait status remains visible; it MUST NOT replace the active session. Rapid prompts after a wait has closed MUST behave like a normal new submit (FR-004).
 
 ### Key Entities
 
 - **Chat Turn**: A user or assistant message in the minimal transcript; user turns are created on prompt submit; assistant turns are created from agent results.
-- **Agent Wait**: Period from prompt-driven thinking start to thinking stop; drives Instagram inner-circle open/close (and completion signal).
+- **Agent Wait**: Period from prompt-driven thinking start to thinking stop. Drives auto-open eligibility, wait-status UI, and completion signal. Soft-dismiss MAY hide the Instagram surface while wait continues; wait end MUST still notify and MUST preserve the assistant transcript turn (FR-008).
 - **Instagram Inner Circle Surface**: The auto-opened social overlay/section styled like Instagram (avatars/stories/feed cards) hosting inner-circle browse + talk entry.
 - **Inner Circle / Inner-Circle Person / Talk Session**: Same product meanings as `001-dead-time-circle` (curated close people; text talk during wait).
 

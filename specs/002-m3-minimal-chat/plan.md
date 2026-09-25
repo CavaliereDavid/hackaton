@@ -46,7 +46,7 @@ Technical approach: sync as-built API/shared packages from the 001 worktree, the
 | IV. Worktree Isolation | PASS | Artifacts and later code changes scoped to 002 branch/worktree; 001 remains the prior feature history |
 | V. Keep It Shipable | PASS | Reuse 001 API; UI-only vertical slice; Material Web + tokens instead of new platforms; no LLM/Instagram API |
 
-**Post-Phase 1 re-check**: PASS — contracts extend 001 wait/talk semantics with UI timing notes; no new services.
+**Post-Phase 1 re-check**: **PASS (API contract)** — `openapi.yaml` reuses 001 wait/talk. **Deferred to T004** — `data-model.md`, `events.md`, `ui.md`, and `quickstart.md` must exist before Phase 3+ UI work relies on them; no new services.
 
 ## Worktree Delivery
 
@@ -65,14 +65,14 @@ Technical approach: sync as-built API/shared packages from the 001 worktree, the
 ```text
 specs/002-m3-minimal-chat/
 ├── plan.md              # This file (/speckit-plan)
-├── research.md          # Phase 0
-├── data-model.md        # Phase 1
-├── quickstart.md        # Phase 1
-├── contracts/
-│   ├── openapi.yaml     # Phase 1 (reuse/annotate 001)
-│   ├── events.md        # Phase 1 (UI timing for auto-open)
-│   └── ui.md            # Phase 1 (M3 + Instagram + minimal chat UI contract)
-└── tasks.md             # Phase 2 via /speckit-tasks (not created here)
+├── research.md          # Phase 0 (done)
+├── tasks.md             # Phase 2 via /speckit-tasks (done)
+├── data-model.md        # Created in tasks T004 before UI polish
+├── quickstart.md        # Created in tasks T004
+└── contracts/
+    ├── openapi.yaml     # Phase 1 (done; reuse/annotate 001)
+    ├── events.md        # Created in tasks T004 (UI timing for auto-open)
+    └── ui.md            # Created in tasks T004 (M3 + Instagram + minimal chat UI contract)
 ```
 
 ### Source Code (repository root — target layout after baseline sync)

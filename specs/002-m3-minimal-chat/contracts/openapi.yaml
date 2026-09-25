@@ -5,7 +5,7 @@ info:
   description: >
     HTTP API reused from feature 001 for agent wait, inner circle, and talk bootstrap.
     UI feature 002 changes client behavior (Enter/submit auto-opens Instagram-like surface);
-    see ui.md and events.md. Realtime: SSE + WebSocket.
+    see ui.md and events.md (authored in tasks T004). Realtime: SSE + WebSocket.
 servers:
   - url: http://localhost:3001
     description: Local API (apps/api)

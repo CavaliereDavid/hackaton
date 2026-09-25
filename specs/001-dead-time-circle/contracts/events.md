@@ -7,6 +7,20 @@
 
 Client MUST open this stream when an agent session is active (or about to think). Dead-time UI MUST react to events below within the SC-001 timing budget on a local demo.
 
+### Subscribe snapshot (required)
+
+Immediately after the client is registered on the stream, the server MUST emit a **snapshot** of the current `AgentSession` state so late subscribers do not miss open/close:
+
+| Current `state` | Snapshot emissions (in order) |
+|-----------------|-------------------------------|
+| `idle` | (none beyond optional `heartbeat`) |
+| `thinking` | `thinking_started` |
+| `ready` | `thinking_stopped` (`outcome=ready`) then `result_ready` |
+| `error` | `thinking_stopped` (`outcome=error`) then `wait_error` |
+| `cancelled` | `thinking_stopped` (`outcome=cancelled`) |
+
+Clients MAY also optimistically open dead time on HTTP `200` from `POST .../thinking/start`; snapshot/SSE remain the source of truth for reconnect.
+
 ### Event: `thinking_started`
 
 ```text
@@ -52,6 +66,10 @@ data: {"ts":"<iso-8601>"}
 
 Optional keep-alive every ~15s.
 
+### Demo auto-ready
+
+When `THINKING_AUTO_MS` > 0, the API MAY emit the normal `thinking_stopped` + `result_ready` sequence after that delay without a client stop call. Manual `POST .../thinking/stop` MUST cancel the pending timer.
+
 ## WebSocket — Talk messages
 
 **URL**: `ws://localhost:3001/v1/talk/ws?talkSessionId=<uuid>`
@@ -73,20 +91,37 @@ Optional keep-alive every ~15s.
 ```
 
 ```json
-{ "type": "error", "code": "validation"|"not_found"|"closed", "message": "<string>" }
+{ "type": "error", "code": "validation"|"not_found"|"closed", "message": "…" }
 ```
+
+### Opening greeting (demo)
+
+On `POST /v1/talk/sessions`, the API SHOULD persist an initial `person` message. On WebSocket connection, the server SHOULD emit that message via `talk.message` if the client has not already loaded it via `GET /v1/talk/sessions/{id}`. Clients MUST dedupe by `message.id`.
 
 ### Demo auto-reply (MVP)
 
-For hackathon demos without a second human client, the API MAY emit a `person` auto-reply shortly after a `user` message so talk is demonstrable single-handed. Document this behavior in quickstart; disable via env if a second client is used.
+For hackathon demos without a second human client, the API MAY emit a `person` auto-reply shortly after a `user` message so talk is demonstrable single-handed. Document this behavior in quickstart; disable via env (`TALK_AUTO_REPLY=0`) if a second client is used.
 
 ## Dead-time UI contract (frontend)
 
 | Condition | Required UI |
 |-----------|-------------|
-| `thinking_started` | Dead-time surface opens automatically |
+| `thinking_started` (or successful start + optimistic open) | Dead-time surface opens automatically |
 | Surface open | Inner circle visible (or empty state) |
 | Talk active + thinking | Status still shows agent waiting |
-| `thinking_stopped` / `result_ready` | Non-blocking completion banner; agent result preserved |
+| Meet active + thinking | Status still shows agent waiting; meet panel remains usable |
+| `thinking_stopped` / `result_ready` | Non-blocking completion banner; agent result preserved (even if meet is live) |
 | Soft dismiss while thinking | Surface hidden; completion still toast/banner capable |
-| Return to agent | Focus returns to agent result without deleting talk session (pause/background OK) |
+| Return to agent | Focus returns to agent result without deleting talk/meet session (pause/end/background OK) |
+| HTTP error on start/stop | Visible error copy (no silent failure) |
+| Inner circle managed in settings | Does **not** by itself open talk or meet popups |
+| Start meet | In-app MeetPanel opens (not an external URL alert); local video preview after permission; simulated remote tile when `live` |
+| Camera/mic denied or unavailable | Clear non-broken state; user can dismiss meet; dead time + agent wait continue |
+| End / dismiss meet | Meet panel closes; talk (if any) and agent result remain |
+
+## Meet session notes
+
+- Meet is **simulated live** for the demo: real local `getUserMedia` preview + simulated remote person presence. No peer WebRTC signaling channel in this slice.
+- Server MAY auto-advance `connecting → live` after `MEET_SIMULATED_CONNECT_MS`, or the client MAY PATCH to `live` after local media is ready; either path MUST be documented in quickstart.
+- Retire stub-only UX (`window.alert` + `meet.example.local` launch URLs).
+

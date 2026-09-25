@@ -1,20 +1,20 @@
 {
   "name": "hackaton",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "pnpm run --parallel /^dev:/",
+    "dev:api": "pnpm --filter @hackaton/api dev",
+    "dev:web": "pnpm --filter @hackaton/web dev",
+    "build": "pnpm -r run build",
+    "test": "pnpm --filter @hackaton/api test"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
       "version": "^12.6.0",
       "onFail": "download"
     }
-  },
-  "type": "module"
+  }
 }

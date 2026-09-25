@@ -133,6 +133,10 @@ paths:
       - $ref: "#/components/parameters/SessionId"
     post:
       summary: Mark thinking started (demo/mock agent)
+      description: >
+        Transitions idle→thinking and emits SSE thinking_started.
+        When THINKING_AUTO_MS > 0, the server may later auto-stop with outcome=ready.
+        Only one thinking session per user is allowed (409 otherwise).
       operationId: startThinking
       responses:
         "200":
@@ -149,6 +153,9 @@ paths:
       - $ref: "#/components/parameters/SessionId"
     post:
       summary: Mark thinking stopped with outcome
+      description: >
+        Cancels any pending THINKING_AUTO_MS timer. Emits thinking_stopped and
+        result_ready or wait_error per outcome.
       operationId: stopThinking
       requestBody:
         required: true
@@ -171,10 +178,13 @@ paths:
       - $ref: "#/components/parameters/SessionId"
     get:
       summary: SSE stream for agent wait lifecycle
+      description: >
+        After subscribe, server emits a snapshot of the current session state
+        (see contracts/events.md) so late clients still open/close dead time correctly.
       operationId: streamAgentEvents
       responses:
         "200":
-          description: text/event-stream (see contracts/events.md)
+          description: text/event-stream with snapshot + live events (see contracts/events.md)
           content:
             text/event-stream:
               schema:
@@ -244,10 +254,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/TalkSession"
 
-  /v1/meet/stub:
+  /v1/meet/sessions:
     post:
-      summary: Offer or open meet stub (SHOULD)
-      operationId: createMeetStub
+      summary: Start a short live meet with an inner-circle person (SHOULD)
+      description: >
+        Creates a MeetSession in offered or connecting state. Client then acquires
+        local media and advances state via PATCH. Simulated remote becomes live
+        after optional MEET_SIMULATED_CONNECT_MS. At most one active meet per user.
+      operationId: createMeetSession
       requestBody:
         required: true
         content:
@@ -262,13 +276,65 @@ paths:
                 talkSessionId:
                   type: string
                   format: uuid
+                agentSessionId:
+                  type: string
+                  format: uuid
+                  description: Attach when started during dead time
       responses:
         "201":
-          description: Meet stub created
+          description: Meet session created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MeetStub"
+                $ref: "#/components/schemas/MeetSession"
+        "404":
+          description: Person not found
+        "409":
+          description: Another meet already active for this user
+
+  /v1/meet/sessions/{meetSessionId}:
+    parameters:
+      - $ref: "#/components/parameters/MeetSessionId"
+    get:
+      summary: Get meet session
+      operationId: getMeetSession
+      responses:
+        "200":
+          description: Meet session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetSession"
+        "404":
+          description: Not found
+    patch:
+      summary: Advance or end meet session
+      description: >
+        Allowed transitions: offered→connecting|dismissed; connecting→live|ended|dismissed;
+        live→ended|dismissed. Ending meet MUST NOT clear any AgentSession result.
+      operationId: updateMeetSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state:
+                  type: string
+                  enum: [offered, connecting, live, ended, dismissed]
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetSession"
+        "409":
+          description: Illegal transition
+        "404":
+          description: Not found
 
 components:
   parameters:
@@ -288,6 +354,13 @@ components:
         format: uuid
     TalkSessionId:
       name: talkSessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MeetSessionId:
+      name: meetSessionId
       in: path
       required: true
       schema:
@@ -457,23 +530,41 @@ components:
               items:
                 $ref: "#/components/schemas/TalkMessage"
 
-    MeetStub:
+    MeetSession:
       type: object
-      required: [id, personId, state]
+      required: [id, userId, personId, state, createdAt, updatedAt]
       properties:
         id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        personId:
           type: string
           format: uuid
         talkSessionId:
           type: string
           format: uuid
           nullable: true
-        personId:
+        agentSessionId:
           type: string
           format: uuid
+          nullable: true
         state:
           type: string
-          enum: [offered, opened, dismissed]
-        launchUrl:
+          enum: [offered, connecting, live, ended, dismissed]
+        startedAt:
           type: string
+          format: date-time
           nullable: true
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

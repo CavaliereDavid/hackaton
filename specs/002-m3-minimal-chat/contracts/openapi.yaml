@@ -1,0 +1,571 @@
+openapi: 3.1.0
+info:
+  title: M3 Minimal Chat + Inner Circle API (reuses 001)
+  version: 0.1.0
+  description: >
+    HTTP API reused from feature 001 for agent wait, inner circle, and talk bootstrap.
+    UI feature 002 changes client behavior (Enter/submit auto-opens Instagram-like surface);
+    see ui.md and events.md. Realtime: SSE + WebSocket.
+servers:
+  - url: http://localhost:3001
+    description: Local API (apps/api)
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok:
+                    type: boolean
+
+  /v1/me:
+    get:
+      summary: Get demo user profile
+      operationId: getMe
+      responses:
+        "200":
+          description: Current demo user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoUser"
+
+  /v1/inner-circle:
+    get:
+      summary: List inner circle
+      operationId: listInnerCircle
+      responses:
+        "200":
+          description: Ordered inner-circle people
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [people]
+                properties:
+                  people:
+                    type: array
+                    maxItems: 10
+                    items:
+                      $ref: "#/components/schemas/InnerCirclePerson"
+    post:
+      summary: Add inner-circle person
+      operationId: addInnerCirclePerson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InnerCirclePersonCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InnerCirclePerson"
+        "400":
+          description: Validation error
+        "409":
+          description: Circle full (max 10)
+
+  /v1/inner-circle/{personId}:
+    parameters:
+      - $ref: "#/components/parameters/PersonId"
+    delete:
+      summary: Remove inner-circle person
+      operationId: removeInnerCirclePerson
+      responses:
+        "204":
+          description: Removed
+        "404":
+          description: Not found
+
+  /v1/agent/sessions:
+    post:
+      summary: Create agent session (user prompt)
+      operationId: createAgentSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt:
+                  type: string
+                  minLength: 1
+                  maxLength: 8000
+      responses:
+        "201":
+          description: Session created in idle or thinking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentSession"
+
+  /v1/agent/sessions/{sessionId}:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    get:
+      summary: Get agent session
+      operationId: getAgentSession
+      responses:
+        "200":
+          description: Session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentSession"
+        "404":
+          description: Not found
+
+  /v1/agent/sessions/{sessionId}/thinking/start:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    post:
+      summary: Mark thinking started (demo/mock agent)
+      description: >
+        Transitions idle→thinking and emits SSE thinking_started.
+        When THINKING_AUTO_MS > 0, the server may later auto-stop with outcome=ready.
+        Only one thinking session per user is allowed (409 otherwise).
+      operationId: startThinking
+      responses:
+        "200":
+          description: Now thinking; SSE thinking_started emitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentSession"
+        "409":
+          description: Invalid transition or another session already thinking
+
+  /v1/agent/sessions/{sessionId}/thinking/stop:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    post:
+      summary: Mark thinking stopped with outcome
+      description: >
+        Cancels any pending THINKING_AUTO_MS timer. Emits thinking_stopped and
+        result_ready or wait_error per outcome.
+      operationId: stopThinking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThinkingStopRequest"
+      responses:
+        "200":
+          description: Thinking stopped; SSE thinking_stopped + result_ready or wait_error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentSession"
+        "409":
+          description: Session not thinking
+
+  /v1/agent/sessions/{sessionId}/events:
+    parameters:
+      - $ref: "#/components/parameters/SessionId"
+    get:
+      summary: SSE stream for agent wait lifecycle
+      description: >
+        After subscribe, server emits a snapshot of the current session state
+        (see contracts/events.md) so late clients still open/close dead time correctly.
+      operationId: streamAgentEvents
+      responses:
+        "200":
+          description: text/event-stream with snapshot + live events (see contracts/events.md)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /v1/talk/sessions:
+    post:
+      summary: Start a text talk with an inner-circle person
+      operationId: createTalkSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [personId]
+              properties:
+                personId:
+                  type: string
+                  format: uuid
+                agentSessionId:
+                  type: string
+                  format: uuid
+                  description: Attach when started during dead time
+      responses:
+        "201":
+          description: Talk session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TalkSession"
+        "404":
+          description: Person not found
+
+  /v1/talk/sessions/{talkSessionId}:
+    parameters:
+      - $ref: "#/components/parameters/TalkSessionId"
+    get:
+      summary: Get talk session with recent messages
+      operationId: getTalkSession
+      responses:
+        "200":
+          description: Talk session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TalkSessionDetail"
+    patch:
+      summary: Pause or close talk
+      operationId: updateTalkSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state:
+                  type: string
+                  enum: [active, paused, closed]
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TalkSession"
+
+  /v1/meet/sessions:
+    post:
+      summary: Start a short live meet with an inner-circle person (SHOULD)
+      description: >
+        Creates a MeetSession in offered or connecting state. Client then acquires
+        local media and advances state via PATCH. Simulated remote becomes live
+        after optional MEET_SIMULATED_CONNECT_MS. At most one active meet per user.
+      operationId: createMeetSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [personId]
+              properties:
+                personId:
+                  type: string
+                  format: uuid
+                talkSessionId:
+                  type: string
+                  format: uuid
+                agentSessionId:
+                  type: string
+                  format: uuid
+                  description: Attach when started during dead time
+      responses:
+        "201":
+          description: Meet session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetSession"
+        "404":
+          description: Person not found
+        "409":
+          description: Another meet already active for this user
+
+  /v1/meet/sessions/{meetSessionId}:
+    parameters:
+      - $ref: "#/components/parameters/MeetSessionId"
+    get:
+      summary: Get meet session
+      operationId: getMeetSession
+      responses:
+        "200":
+          description: Meet session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetSession"
+        "404":
+          description: Not found
+    patch:
+      summary: Advance or end meet session
+      description: >
+        Allowed transitions: offered→connecting|dismissed; connecting→live|ended|dismissed;
+        live→ended|dismissed. Ending meet MUST NOT clear any AgentSession result.
+      operationId: updateMeetSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state:
+                  type: string
+                  enum: [offered, connecting, live, ended, dismissed]
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetSession"
+        "409":
+          description: Illegal transition
+        "404":
+          description: Not found
+
+components:
+  parameters:
+    PersonId:
+      name: personId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TalkSessionId:
+      name: talkSessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MeetSessionId:
+      name: meetSessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    DemoUser:
+      type: object
+      required: [id, displayName, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    InnerCirclePerson:
+      type: object
+      required: [id, ownerUserId, displayName, status, sortOrder, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        ownerUserId:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        handle:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [available, away, unreachable]
+        sortOrder:
+          type: integer
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+
+    InnerCirclePersonCreate:
+      type: object
+      required: [displayName]
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 80
+        handle:
+          type: string
+        avatarUrl:
+          type: string
+
+    AgentSession:
+      type: object
+      required: [id, userId, prompt, state, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        prompt:
+          type: string
+        state:
+          type: string
+          enum: [idle, thinking, ready, error, cancelled]
+        resultText:
+          type: string
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        thinkingStartedAt:
+          type: string
+          format: date-time
+          nullable: true
+        thinkingStoppedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ThinkingStopRequest:
+      type: object
+      required: [outcome]
+      properties:
+        outcome:
+          type: string
+          enum: [ready, error, cancelled]
+        resultText:
+          type: string
+          description: Required when outcome=ready
+        errorMessage:
+          type: string
+          description: Optional when outcome=error
+
+    TalkSession:
+      type: object
+      required: [id, userId, personId, state, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        personId:
+          type: string
+          format: uuid
+        agentSessionId:
+          type: string
+          format: uuid
+          nullable: true
+        state:
+          type: string
+          enum: [active, paused, closed]
+        createdAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    TalkMessage:
+      type: object
+      required: [id, talkSessionId, sender, body, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        talkSessionId:
+          type: string
+          format: uuid
+        sender:
+          type: string
+          enum: [user, person, system]
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    TalkSessionDetail:
+      allOf:
+        - $ref: "#/components/schemas/TalkSession"
+        - type: object
+          required: [messages]
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: "#/components/schemas/TalkMessage"
+
+    MeetSession:
+      type: object
+      required: [id, userId, personId, state, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        personId:
+          type: string
+          format: uuid
+        talkSessionId:
+          type: string
+          format: uuid
+          nullable: true
+        agentSessionId:
+          type: string
+          format: uuid
+          nullable: true
+        state:
+          type: string
+          enum: [offered, connecting, live, ended, dismissed]
+        startedAt:
+          type: string
+          format: date-time
+          nullable: true
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

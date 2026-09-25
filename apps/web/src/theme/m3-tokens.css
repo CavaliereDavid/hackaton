@@ -1,0 +1,53 @@
+/* Material Design 3 color roles + type — https://m3.material.io/ */
+:root {
+  --md-sys-color-primary: #4a635d;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #cce8e0;
+  --md-sys-color-on-primary-container: #05201c;
+  --md-sys-color-secondary: #4a635f;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #cce8e2;
+  --md-sys-color-on-secondary-container: #05201c;
+  --md-sys-color-tertiary: #456179;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #cce5ff;
+  --md-sys-color-on-tertiary-container: #001e31;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #410002;
+  --md-sys-color-surface: #f5fbf7;
+  --md-sys-color-on-surface: #171d1b;
+  --md-sys-color-surface-variant: #dae5e0;
+  --md-sys-color-on-surface-variant: #3f4946;
+  --md-sys-color-outline: #6f7976;
+  --md-sys-color-outline-variant: #bec9c4;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #eff5f1;
+  --md-sys-color-surface-container: #e9efeb;
+  --md-sys-color-surface-container-high: #e3eae6;
+  --md-sys-color-surface-container-highest: #dee4e0;
+  --md-sys-color-inverse-surface: #2b322f;
+  --md-sys-color-inverse-on-surface: #ecf2ee;
+
+  --md-sys-typescale-display-small-size: 2.25rem;
+  --md-sys-typescale-headline-small-size: 1.5rem;
+  --md-sys-typescale-title-large-size: 1.375rem;
+  --md-sys-typescale-body-large-size: 1rem;
+  --md-sys-typescale-body-medium-size: 0.875rem;
+  --md-sys-typescale-label-large-size: 0.875rem;
+
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 999px;
+
+  --md-ref-typeface-brand: "Roboto Flex", "Segoe UI", sans-serif;
+  --md-ref-typeface-plain: "Roboto Flex", "Segoe UI", sans-serif;
+
+  /* Material Web component theming */
+  --md-sys-color-background: var(--md-sys-color-surface);
+  --md-sys-color-on-background: var(--md-sys-color-on-surface);
+}

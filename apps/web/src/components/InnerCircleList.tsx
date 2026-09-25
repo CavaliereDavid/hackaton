@@ -22,5 +22,9 @@ export function InnerCircleList({
 }
 
 export function InnerCircleEmpty() {
-  return <p className="deadtime__empty">Your inner circle is empty. Add someone in settings to talk during dead time.</p>;
+  return (
+    <p className="muted">
+      Il cerchio è vuoto. Aggiungi qualcuno per usare il tempo morto dell&apos;agente.
+    </p>
+  );
 }

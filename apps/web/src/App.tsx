@@ -5,7 +5,7 @@ import { InnerCirclePage } from "./pages/InnerCirclePage";
 export function App() {
   return (
     <div className="app-shell">
-      <nav className="nav">
+      <nav className="nav" aria-label="Primary">
         <Link to="/">Agent</Link>
         <Link to="/inner-circle">Inner Circle</Link>
       </nav>

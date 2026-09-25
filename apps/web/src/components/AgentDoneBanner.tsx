@@ -9,18 +9,29 @@ type Props = {
 export function AgentDoneBanner({ visible, resultText, errorMessage, onReturn, onPauseTalk }: Props) {
   if (!visible) return null;
   return (
-    <div className="panel" style={{ borderColor: "rgba(180,83,9,0.35)", marginBottom: "1rem" }}>
-      <strong>Agent is done</strong>
-      <p style={{ margin: "0.35rem 0 0.75rem" }}>
-        {errorMessage ? `Error: ${errorMessage}` : resultText ? "Result is ready." : "Session finished."}
-      </p>
+    <div className="banner-done quiet-pill">
+      <div className="row" style={{ gap: "0.75rem", flex: 1 }}>
+        <div className="banner-done__icon" aria-hidden="true">
+          ✓
+        </div>
+        <div>
+          <div className="banner-done__title">Elaborazione Completata</div>
+          <div className="banner-done__sub">
+            {errorMessage
+              ? `Errore: ${errorMessage}`
+              : resultText
+                ? "Risultato pronto · Mente serena"
+                : "Sessione terminata"}
+          </div>
+        </div>
+      </div>
       <div className="row">
-        <button type="button" className="btn" onClick={onReturn}>
-          Return to agent
+        <button type="button" className="btn secondary" onClick={onReturn}>
+          Torna all&apos;agente
         </button>
         {onPauseTalk ? (
           <button type="button" className="btn secondary" onClick={onPauseTalk}>
-            Pause talk
+            Pausa chat
           </button>
         ) : null}
       </div>

@@ -37,7 +37,16 @@ export function MeetPanel({
   return (
     <div className="meet-panel stack">
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ margin: 0 }}>Meet with {personName}</h3>
+        <h3
+          style={{
+            margin: 0,
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontWeight: 400,
+          }}
+        >
+          Meet con {personName}
+        </h3>
         <span className="meet-status" data-state={meet.state}>
           {meet.state === "connecting" ? "Connecting…" : meet.state === "live" ? "Live" : meet.state}
         </span>
